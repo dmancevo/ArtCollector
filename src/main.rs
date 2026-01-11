@@ -1,9 +1,4 @@
-mod handlers;
-mod models;
-mod routes;
-mod services;
-mod state;
-
+use collector::{routes, services, state};
 use state::AppState;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
