@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Game - Round {{ round }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div
+        hx-get="/game/{{ game_id }}/play?player_id={{ player_id }}"
+        hx-trigger="every 2s"
+        hx-select="#game-content"
+        hx-target="#game-content"
+        hx-swap="outerHTML"
+    >
+        <div id="game-content">
+            <!-- Player Info Header -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-title">Your Name</div>
+                    <div class="stat-value text-2xl">{{ player_name }}</div>
+                </div>
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-title">Chips</div>
+                    <div class="stat-value text-2xl {% if player_chips < 0 %}text-error{% endif %}">
+                        {{ player_chips }}
+                    </div>
+                </div>
+                <div class="stat bg-base-100 shadow rounded-lg">
+                    <div class="stat-title">Collection</div>
+                    <div class="stat-value text-2xl">
+                        {{ collection_count }} ({{ collection_score }}pts)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Game Area -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="card-title text-3xl">Round {{ round }}</h2>
+                        <div class="text-right">
+                            <div class="text-sm text-base-content/70">Time Remaining</div>
+                            <div class="text-4xl font-bold {% if timer_seconds <= 5 %}text-error animate-pulse{% else %}text-primary{% endif %}">
+                                {{ timer_seconds }}s
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Art Piece -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Art Display -->
+                        <div class="flex flex-col items-center justify-center bg-base-200 rounded-lg p-8">
+                            <div class="text-6xl mb-4">🖼️</div>
+                            <h3 class="text-2xl font-bold text-center mb-2">{{ current_art.name }}</h3>
+                            <p class="text-lg text-center opacity-80 mb-2">{{ current_art.artist }}</p>
+                            <p class="text-md text-center opacity-60 mb-4">{{ current_art.movement }}</p>
+                            <div class="flex gap-1 text-2xl">
+                                {% for _ in 0..current_art.stars %}
+                                ⭐
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Bidding Area -->
+                        <div class="flex flex-col justify-center">
+                            <!-- Current Bid -->
+                            <div class="mb-6">
+                                {% match current_highest_bid %}
+                                {% when Some with (bid) %}
+                                <div class="alert alert-info">
+                                    <div>
+                                        <div class="font-bold">Current Highest Bid</div>
+                                        <div class="text-2xl">{{ bid }} chips</div>
+                                        {% match current_highest_bidder %}
+                                        {% when Some with (bidder) %}
+                                        <div class="text-sm opacity-70">by {{ bidder }}</div>
+                                        {% when None %}
+                                        {% endmatch %}
+                                    </div>
+                                </div>
+                                {% when None %}
+                                <div class="alert">
+                                    <span>No bids yet - Be the first to bid!</span>
+                                </div>
+                                {% endmatch %}
+                            </div>
+
+                            <!-- Bidding Form -->
+                            {% if player_chips > 0 %}
+                            <form
+                                hx-post="/game/{{ game_id }}/bid"
+                                hx-swap="none"
+                                class="space-y-4"
+                            >
+                                <input type="hidden" name="player_id" value="{{ player_id }}" />
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Your Bid</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        {% match current_highest_bid %}
+                                        {% when Some with (bid) %}
+                                        min="{{ bid + 1 }}"
+                                        placeholder="Min: {{ bid + 1 }}"
+                                        {% when None %}
+                                        min="1"
+                                        placeholder="Min: 1"
+                                        {% endmatch %}
+                                        max="{{ player_chips }}"
+                                        class="input input-bordered input-lg"
+                                        required
+                                    />
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-full">
+                                    Place Bid
+                                </button>
+                            </form>
+
+                            <form
+                                hx-post="/game/{{ game_id }}/pass"
+                                hx-swap="none"
+                                class="mt-2"
+                            >
+                                <input type="hidden" name="player_id" value="{{ player_id }}" />
+                                <button type="submit" class="btn btn-ghost w-full">
+                                    Pass
+                                </button>
+                            </form>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <span>You don't have enough chips to bid!</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

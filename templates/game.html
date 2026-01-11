@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Game{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1>Round {{ round }}</h1>
+    <p>Player: {{ player_name }}</p>
+    <p>Chips: {{ player_chips }}</p>
+    <p>Timer: {{ timer_seconds }}s</p>
+</div>
+{% endblock %}

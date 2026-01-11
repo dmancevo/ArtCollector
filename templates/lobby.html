@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Game Lobby{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-3xl mb-4">Game Lobby</h2>
+            <p class="mb-4">Game ID: <span class="font-mono font-bold">{{ game_id }}</span></p>
+
+            <div
+                hx-get="/lobby/{{ game_id }}?player_id={{ player_id }}"
+                hx-trigger="every 2s"
+                hx-select="#lobby-content"
+                hx-target="#lobby-content"
+                hx-swap="outerHTML"
+            >
+                <div id="lobby-content">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Players List -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Players ({{ players.len() }})</h3>
+                            <div class="space-y-2">
+                                {% for player in players %}
+                                <div class="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
+                                    <span class="text-lg">👤</span>
+                                    <span class="flex-1">{{ player.name }}</span>
+                                    {% if player.is_host %}
+                                    <span class="badge badge-primary">Host</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Game Configuration -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">Game Settings</h3>
+
+                            {% if is_host %}
+                            <form
+                                hx-post="/lobby/{{ game_id }}/configure"
+                                hx-swap="none"
+                                class="space-y-4"
+                            >
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Starting Chips</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="starting_chips"
+                                        value="{{ starting_chips }}"
+                                        min="10"
+                                        max="1000"
+                                        class="input input-bordered"
+                                    />
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Bid Timer (seconds)</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="bid_timer_seconds"
+                                        value="{{ bid_timer_seconds }}"
+                                        min="10"
+                                        max="120"
+                                        class="input input-bordered"
+                                    />
+                                </div>
+
+                                <button type="submit" class="btn btn-secondary w-full">
+                                    Update Settings
+                                </button>
+                            </form>
+                            {% else %}
+                            <div class="space-y-4">
+                                <div class="stat bg-base-200 rounded-lg">
+                                    <div class="stat-title">Starting Chips</div>
+                                    <div class="stat-value text-3xl">{{ starting_chips }}</div>
+                                </div>
+                                <div class="stat bg-base-200 rounded-lg">
+                                    <div class="stat-title">Bid Timer</div>
+                                    <div class="stat-value text-3xl">{{ bid_timer_seconds }}s</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if is_host %}
+                    <div class="divider"></div>
+                    <form action="/lobby/{{ game_id }}/start" method="post">
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-lg w-full"
+                            {% if players.len() < 2 %}disabled{% endif %}
+                        >
+                            {% if players.len() < 2 %}
+                            Waiting for more players...
+                            {% else %}
+                            Start Game
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-info mt-6">
+                        <span>Waiting for host to start the game...</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

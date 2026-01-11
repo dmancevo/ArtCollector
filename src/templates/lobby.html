@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Lobby - Art Collector{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto" hx-ext="sse" sse-connect="/game/{{ game_id }}/events">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2">🎨 Game Lobby</h1>
+        <p class="text-sm opacity-70">Game ID: {{ game_id }}</p>
+    </div>
+
+    <!-- Hidden redirect trigger that gets activated by SSE -->
+    <div
+        id="game-redirect"
+        hx-get="/game/{{ game_id }}/play?player_id={{ player_id }}"
+        hx-trigger="sse:game-started"
+        hx-target="body"
+        hx-swap="outerHTML"
+        hx-push-url="true"
+        style="display:none;">
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Players List -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body" id="lobby-players" sse-swap="lobby-players-updated">
+                <h2 class="card-title">Players ({{ players.len() }})</h2>
+                <div class="space-y-2">
+                    {% for player in players %}
+                    <div class="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
+                        <div class="avatar placeholder">
+                            <div class="bg-primary text-primary-content rounded-full w-10">
+                                <span>{{ player.name.chars().next().unwrap_or('?').to_uppercase() }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-semibold">{{ player.name }}</div>
+                        </div>
+                        {% if player.is_host %}
+                        <div class="badge badge-primary">Host</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% if players.is_empty() %}
+                    <div class="text-center py-8 opacity-50">
+                        <p>No players yet...</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Settings -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body" {% if is_host %}id="lobby-settings" sse-swap="lobby-settings-host"{% else %}id="lobby-settings" sse-swap="lobby-settings-player"{% endif %}>
+                <h2 class="card-title">Game Settings</h2>
+
+                {% if is_host %}
+                <form
+                    hx-post="/lobby/{{ game_id }}/configure"
+                    hx-swap="none"
+                    hx-trigger="change"
+                    class="space-y-4"
+                >
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Starting Chips</span>
+                            <span class="label-text-alt" id="chips-value">{{ starting_chips }}</span>
+                        </label>
+                        <input
+                            type="range"
+                            name="starting_chips"
+                            min="50"
+                            max="500"
+                            value="{{ starting_chips }}"
+                            class="range range-primary"
+                            step="50"
+                            oninput="document.getElementById('chips-value').textContent = this.value"
+                        />
+                        <div class="w-full flex justify-between text-xs px-2 opacity-50">
+                            <span>50</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Bid Timer (seconds)</span>
+                            <span class="label-text-alt" id="timer-value">{{ bid_timer_seconds }}</span>
+                        </label>
+                        <input
+                            type="range"
+                            name="bid_timer_seconds"
+                            min="15"
+                            max="60"
+                            value="{{ bid_timer_seconds }}"
+                            class="range range-secondary"
+                            step="5"
+                            oninput="document.getElementById('timer-value').textContent = this.value"
+                        />
+                        <div class="w-full flex justify-between text-xs px-2 opacity-50">
+                            <span>15s</span>
+                            <span>60s</span>
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Number of Rounds</span>
+                            <span class="label-text-alt" id="rounds-value">{{ num_rounds }}</span>
+                        </label>
+                        <input
+                            type="range"
+                            name="num_rounds"
+                            min="1"
+                            max="90"
+                            value="{{ num_rounds }}"
+                            class="range range-accent"
+                            step="1"
+                            oninput="document.getElementById('rounds-value').textContent = this.value"
+                        />
+                        <div class="w-full flex justify-between text-xs px-2 opacity-50">
+                            <span>1</span>
+                            <span>90</span>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="divider"></div>
+
+                <form
+                    action="/lobby/{{ game_id }}/start?player_id={{ player_id }}"
+                    method="post"
+                >
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-lg w-full"
+                        {% if players.len() < 2 %}disabled{% endif %}
+                    >
+                        {% if players.len() < 2 %}
+                        Waiting for players...
+                        {% else %}
+                        Start Game
+                        {% endif %}
+                    </button>
+                </form>
+
+                {% else %}
+                <div class="space-y-4">
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Starting Chips</div>
+                        <div class="stat-value text-primary">{{ starting_chips }}</div>
+                    </div>
+
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Bid Timer</div>
+                        <div class="stat-value text-secondary">{{ bid_timer_seconds }}s</div>
+                    </div>
+
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Number of Rounds</div>
+                        <div class="stat-value text-accent">{{ num_rounds }}</div>
+                    </div>
+
+                    <div class="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Waiting for host to start the game...</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-6">
+    <div class="join">
+        <input
+            class="input input-bordered join-item w-64"
+            value="http://localhost:3000/join/{{ game_id }}"
+            readonly
+            id="share-link"
+        />
+        <button
+            class="btn join-item"
+            onclick="navigator.clipboard.writeText('http://localhost:3000/join/{{ game_id }}'); this.innerHTML='✓ Copied!'; setTimeout(() => this.innerHTML='📋 Copy Link', 2000)"
+        >
+            📋 Copy Link
+        </button>
+    </div>
+</div>
+{% endblock %}

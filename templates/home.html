@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Art Collector - Home{% endblock %}
+
+{% block content %}
+<div class="hero min-h-[80vh]">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold mb-8">🎨 Art Collector</h1>
+            <p class="text-lg mb-8">
+                Compete with friends to build the ultimate art collection!
+                Bid on masterpieces and collect strategic combinations of artists and movements.
+            </p>
+            <form action="/create" method="post">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Create New Game
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

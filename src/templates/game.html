@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Round {{ round }} - Art Collector{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto" hx-ext="sse" sse-connect="/game/{{ game_id }}/events">
+    <div class="text-center mb-6">
+        <div
+            id="player-info"
+            hx-get="/game/{{ game_id }}/player-info?player_id={{ player_id }}"
+            hx-trigger="sse:player-updated"
+            hx-swap="innerHTML"
+            class="flex justify-between items-center">
+            <div class="stat bg-base-100 rounded-lg">
+                <div class="stat-title">Your Chips</div>
+                <div class="stat-value text-primary">{{ player_chips }}</div>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold">Round {{ round }}</h1>
+                <p class="text-sm opacity-70">{{ player_name }}</p>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+                <div class="stat-title">Collection</div>
+                <div class="stat-value text-secondary">{{ collection_count }}</div>
+                <div class="stat-desc">Score: {{ collection_score }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden redirect trigger for game finish -->
+    <div
+        id="finish-redirect"
+        hx-get="/game/{{ game_id }}/results?player_id={{ player_id }}"
+        hx-trigger="sse:game-finished"
+        hx-target="body"
+        hx-swap="outerHTML"
+        hx-push-url="true"
+        style="display:none;">
+    </div>
+
+    <div id="game-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Current Art Piece -->
+                <div class="lg:col-span-2 card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <div id="current-art" sse-swap="round-resolved" class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="card-title text-2xl">{{ current_art.name }}</h2>
+                                <p class="text-lg opacity-70">{{ current_art.artist.name() }}</p>
+                                <p class="text-sm opacity-50">{{ current_art.movement.name() }}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl">
+                                    {% for _ in 0..current_art.stars %}⭐{% endfor %}
+                                </div>
+                                <p class="text-xs opacity-50">Value</p>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Current Bid Info -->
+                        <div id="current-bid" sse-swap="bid-placed" class="bg-base-200 rounded-lg p-4 mb-4">
+                            {% if has_bid %}
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="text-sm opacity-70">Current Highest Bid</p>
+                                        <p class="text-2xl font-bold text-primary">{{ current_highest_bid }} chips</p>
+                                    </div>
+                                    {% if !current_highest_bidder.is_empty() %}
+                                    <div class="badge badge-lg badge-primary">{{ current_highest_bidder }}</div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p class="text-center opacity-50">No bids yet</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Timer / Start Button -->
+                        <div
+                            id="timer-display"
+                            hx-get="/game/{{ game_id }}/timer-display?player_id={{ player_id }}"
+                            hx-trigger="load, sse:timer-update"
+                            hx-swap="innerHTML"
+                            class="text-center mb-4">
+                            {% if timer_seconds < 0 %}
+                                {% if is_host %}
+                                <form
+                                    hx-post="/game/{{ game_id }}/start-round"
+                                    hx-swap="none"
+                                    class="flex flex-col gap-2 items-center"
+                                >
+                                    <input type="hidden" name="player_id" value="{{ player_id }}" />
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        🎬 Start Round {{ round }}
+                                    </button>
+                                    <p class="text-xs opacity-50">Click to begin bidding</p>
+                                </form>
+                                {% else %}
+                                <div class="text-2xl font-bold text-warning">
+                                    Waiting for host to start...
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-4xl font-mono font-bold
+                                    {% if timer_seconds <= 5 %}text-error{% else %}text-info{% endif %}
+                                ">
+                                    {{ timer_seconds }}s
+                                </div>
+                                <p class="text-xs opacity-50">Time remaining</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Bidding Area -->
+                        <div
+                            id="bidding-area"
+                            hx-get="/game/{{ game_id }}/bidding-area?player_id={{ player_id }}"
+                            hx-trigger="load, sse:bidding-updated"
+                            hx-swap="innerHTML">
+                            {% if timer_seconds < 0 %}
+                            <div class="alert alert-info">
+                                <span>⏸️ Waiting for host to start bidding...</span>
+                            </div>
+                            {% else %}
+                                {% if player_chips > 0 %}
+                                <p class="text-center opacity-50 py-4">Loading bidding controls...</p>
+                                {% else %}
+                                <div class="alert alert-warning">
+                                    <span>You have no chips left! You can only watch.</span>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player Info & Collection -->
+                <div class="space-y-4">
+                    <!-- Collection Preview -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h3 class="card-title text-lg">Your Collection</h3>
+                            <div
+                                id="collection-display"
+                                hx-get="/game/{{ game_id }}/collection?player_id={{ player_id }}"
+                                hx-trigger="load, sse:player-updated"
+                                hx-swap="innerHTML">
+                                {% if collection_count > 0 %}
+                                <p class="text-center opacity-50 py-4">Loading collection...</p>
+                                {% else %}
+                                <p class="text-center opacity-50 py-8">No pieces yet</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tips -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h3 class="card-title text-sm">💡 Strategy Tips</h3>
+                            <ul class="text-xs space-y-1 opacity-70">
+                                <li>• Collect multiple pieces from the same artist for bonus points</li>
+                                <li>• Collecting from the same movement also gives bonuses</li>
+                                <li>• Bonuses multiply your base score</li>
+                                <li>• Higher star pieces are worth more base points</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Join Game{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-4">Join Game</h2>
+            <p class="mb-4">Game ID: <span class="font-mono font-bold">{{ game_id }}</span></p>
+
+            {% match error %}
+            {% when Some with (err) %}
+            <div class="alert alert-error mb-4">
+                <span>{{ err }}</span>
+            </div>
+            {% when None %}
+            {% endmatch %}
+
+            <form action="/join/{{ game_id }}" method="post" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Your Name</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="player_name"
+                        placeholder="Enter your name"
+                        class="input input-bordered"
+                        required
+                        maxlength="20"
+                        autofocus
+                    />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    Join Game
+                </button>
+            </form>
+
+            <div class="divider">Share with Friends</div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Share this link:</span>
+                </label>
+                <div class="join">
+                    <input
+                        type="text"
+                        value="{{ share_url }}"
+                        class="input input-bordered join-item flex-1"
+                        readonly
+                        onclick="this.select()"
+                    />
+                    <button
+                        class="btn join-item"
+                        onclick="navigator.clipboard.writeText('{{ share_url }}'); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000)"
+                    >
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

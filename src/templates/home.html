@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Art Collector - Home{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[70vh]">
+    <div class="card w-full max-w-2xl bg-base-100 shadow-xl">
+        <div class="card-body items-center text-center">
+            <h1 class="card-title text-5xl mb-4">🎨 Art Collector</h1>
+            <p class="text-xl mb-8">
+                Bid on famous masterpieces and build the most valuable art collection!
+            </p>
+
+            <div class="stats stats-vertical lg:stats-horizontal shadow mb-8">
+                <div class="stat">
+                    <div class="stat-title">Total Artworks</div>
+                    <div class="stat-value text-primary">90</div>
+                    <div class="stat-desc">Famous paintings</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Artists</div>
+                    <div class="stat-value text-secondary">30</div>
+                    <div class="stat-desc">Masters of art</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Movements</div>
+                    <div class="stat-value text-accent">10</div>
+                    <div class="stat-desc">Art styles</div>
+                </div>
+            </div>
+
+            <form action="/create" method="post" class="w-full">
+                <button type="submit" class="btn btn-primary btn-lg w-full max-w-md">
+                    Create New Game
+                </button>
+            </form>
+
+            <div class="divider">How to Play</div>
+
+            <div class="text-left w-full space-y-6">
+                <div class="space-y-3">
+                    <h3 class="font-semibold text-lg">🎮 Game Flow</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-start gap-3">
+                            <div class="badge badge-primary">1</div>
+                            <p><strong>Create & Join:</strong> Host creates a game, shares the link, and configures settings (chips, timer, rounds)</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="badge badge-primary">2</div>
+                            <p><strong>Start Round:</strong> Host manually starts each bidding round</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="badge badge-primary">3</div>
+                            <p><strong>Place Bids:</strong> Players bid on art pieces. Each bid resets the timer. Highest bid wins!</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="badge badge-primary">4</div>
+                            <p><strong>Build Collection:</strong> Winners add art to their collection. No bids? Art is discarded.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="badge badge-primary">5</div>
+                            <p><strong>Final Scores:</strong> After all rounds, player with highest score wins!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider my-4"></div>
+
+                <div class="space-y-3">
+                    <h3 class="font-semibold text-lg">🎯 Scoring System</h3>
+                    <div class="alert alert-info text-sm">
+                        <div>
+                            <p class="font-semibold">Collect strategically! Bonuses multiply your score.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="card bg-base-200">
+                            <div class="card-body p-4">
+                                <h4 class="font-semibold flex items-center gap-2">
+                                    <span class="badge badge-secondary">Artist Bonus</span>
+                                </h4>
+                                <p class="opacity-80">For each artist: (sum of stars) × (pieces collected)</p>
+                                <div class="bg-base-100 p-2 rounded mt-2">
+                                    <p class="text-xs font-mono">3 Van Gogh pieces (3★ + 2★ + 2★)<br/>= 7 × 3 = <strong class="text-secondary">21 points</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card bg-base-200">
+                            <div class="card-body p-4">
+                                <h4 class="font-semibold flex items-center gap-2">
+                                    <span class="badge badge-accent">Movement Bonus</span>
+                                </h4>
+                                <p class="opacity-80">For each movement: (sum of stars) × (pieces collected)</p>
+                                <div class="bg-base-100 p-2 rounded mt-2">
+                                    <p class="text-xs font-mono">2 Impressionist (3★ + 2★)<br/>= 5 × 2 = <strong class="text-accent">10 points</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card bg-primary text-primary-content">
+                            <div class="card-body p-4">
+                                <h4 class="font-semibold">Final Score</h4>
+                                <p>MAX(Artist Bonus, Movement Bonus)</p>
+                                <p class="text-xs opacity-90 mt-2">💡 Tip: Each piece counts for both bonuses, but you score whichever is higher! Collect strategically.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
