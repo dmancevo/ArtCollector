@@ -9,6 +9,23 @@
         <p class="text-sm opacity-70">Game ID: {{ game_id }}</p>
     </div>
 
+    <div class="text-center mb-6">
+        <div class="join">
+            <input
+                class="input input-bordered join-item w-64"
+                value="http://localhost:3000/join/{{ game_id }}"
+                readonly
+                id="share-link"
+            />
+            <button
+                class="btn join-item"
+                onclick="navigator.clipboard.writeText('http://localhost:3000/join/{{ game_id }}'); this.innerHTML='✓ Copied!'; setTimeout(() => this.innerHTML='📋 Copy Link', 2000)"
+            >
+                📋 Copy Link
+            </button>
+        </div>
+    </div>
+
     <!-- Hidden redirect trigger that gets activated by SSE -->
     <div
         id="game-redirect"
@@ -173,23 +190,6 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
-
-<div class="text-center mt-6">
-    <div class="join">
-        <input
-            class="input input-bordered join-item w-64"
-            value="http://localhost:3000/join/{{ game_id }}"
-            readonly
-            id="share-link"
-        />
-        <button
-            class="btn join-item"
-            onclick="navigator.clipboard.writeText('http://localhost:3000/join/{{ game_id }}'); this.innerHTML='✓ Copied!'; setTimeout(() => this.innerHTML='📋 Copy Link', 2000)"
-        >
-            📋 Copy Link
-        </button>
     </div>
 </div>
 {% endblock %}
